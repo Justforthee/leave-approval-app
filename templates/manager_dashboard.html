@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Manager Dashboard</h1>
+    <table>
+        <tr>
+            <th>Employee ID</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        {% for request in requests %}
+        <tr>
+            <td>{{ request[1] }}</td>
+            <td>{{ request[2] }}</td>
+            <td>{{ request[3] }}</td>
+            <td>{{ request[4] }}</td>
+            <td>{{ request[5] }}</td>
+            <td>
+                {% if request[5] == 'Pending' %}
+                    <a href="{{ url_for('approve_request', request_id=request[0]) }}">Approve</a>
+                    <a href="{{ url_for('reject_request', request_id=request[0]) }}">Reject</a>
+                {% endif %}
+                <button onclick="getInsights({{ request[0] }})">Get Insights</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br />
+    <div id="insights" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;"></div>
+    <br />
+    <a href="{{ url_for('index') }}">Back to Home</a>
+    <script>
+        function getInsights(requestId) {
+            fetch(`/get_insights/${requestId}`)
+                .then(response => response.text())
+                .then(data => {
+                    // Original line (commented out):
+                    // document.getElementById('insights').innerHTML = data;
+
+                    // Format the insights by replacing newlines with <br/> tags
+                    const formattedData = data.replace(/\n/g, '<br/>');
+                    
+                    // Split the formatted data into paragraphs
+                    const paragraphs = formattedData.split('<br/><br/>');
+                    
+                    // Wrap each paragraph in a <p> tag
+                    const htmlContent = paragraphs.map(p => `<p>${p}</p>`).join('');
+                    
+                    // Update the insights div with the formatted content
+                    document.getElementById('insights').innerHTML = htmlContent;
+                });
+        }
+    </script>
+</body>
+</html>
